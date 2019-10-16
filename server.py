@@ -1,12 +1,11 @@
 import os
 import json
 import pickle
-import joblib
 import pandas as pd
 from flask import Flask, request
 from nltk.corpus import stopwords
 import re
-from bs4 import BeautifulSoup
+from collections import Counter
 import scipy
 
 # create and configure the app
@@ -19,10 +18,12 @@ except OSError:
 
 
 # Import the recommendations
-clf = joblib.load(open("clf", 'rb'))
 tf_transformer = pickle.load(open("tf_transformer", 'rb'))
 count_vect = pickle.load(open("count_vect", 'rb'))
 tags_list = pickle.load(open("tags_list", 'rb'))
+svd = pickle.load(open("svd", 'rb'))
+nbrs = pickle.load(open("nbrs", 'rb'))
+df_train = pickle.load(open("df_train", 'rb'))
 stops = set(stopwords.words("english"))
 
 def review_to_words(raw_body, raw_title, stops):
@@ -66,12 +67,12 @@ def title_to_words( raw_title, stops):
     return( " ".join( meaningful_words ))
 
 
-def proba_to_list(prediction_proba, indice):
-    result = {}
-    for i, tag in enumerate(tags_list):
-        if prediction_proba[i][indice][1]>0.0000000000001:
-            result[tag]= prediction_proba[i][indice][1]
-    return [x[0] for x in sorted(result.items(), key=lambda kv: kv[1], reverse=True)[:10]]
+
+def indice_to_tags(df_train, indices, i):
+    posts_list = indices[i]
+    temp_tags = [ tag for sublist in list(df_train.iloc[posts_list].Tags_cleaned) for tag in sublist]
+    data = Counter(temp_tags)
+    return [ x[0] for x in data.most_common(10)]
 
 @app.route('/predict_tags', methods=['GET'])
 def predict_tags():
@@ -86,9 +87,10 @@ def predict_tags():
     for tag in tags_list:
         df_custom['title_contain_tag_'+tag]=df_custom.Title_cleaned.apply(lambda x : tag in x)
     X_custom_title = df_custom[['title_contain_tag_'+tag for tag in tags_list]]
-    X_custom_title = scipy.sparse.csr_matrix(X_custom_title.values)*10
+    X_custom_title = scipy.sparse.csr_matrix(X_custom_title.values)
     X_custom = scipy.sparse.hstack([X_custom_body,X_custom_title])
+    X_custom_svd = svd.transform(X_custom)
 
     # Prediction
-    prediction_custom = clf.predict_proba(X_custom)
-    return json.dumps(proba_to_list(prediction_custom, 0))
+    _, indices = nbrs.kneighbors(X_custom_svd)
+    return json.dumps(indice_to_tags(df_train, indices, 0))
