@@ -3,7 +3,6 @@ import json
 import pickle
 import pandas as pd
 from flask import Flask, request
-from nltk.corpus import stopwords
 import re
 from collections import Counter
 import scipy
@@ -24,7 +23,7 @@ tags_list = pickle.load(open("tags_list", 'rb'))
 svd = pickle.load(open("svd", 'rb'))
 nbrs = pickle.load(open("nbrs", 'rb'))
 df_train = pickle.load(open("df_train", 'rb'))
-stops = set(stopwords.words("english"))
+stops = pickle.load(open("stops", 'rb'))
 
 def review_to_words(raw_body, raw_title, stops):
     # Function to convert a raw review to a string of words
