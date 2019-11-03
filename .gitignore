@@ -1,0 +1,10 @@
+__pychache__
+.mypy_cache
+.vscode
+X_test
+X_test_body
+X_train
+X_train_body
+df
+df_test
+*.pyc
