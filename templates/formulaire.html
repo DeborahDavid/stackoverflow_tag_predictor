@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Stack overflow tag predictor</title>
+        <style>
+        body
+        {
+            background-image: url("https://images.pexels.com/photos/1383562/pexels-photo-1383562.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260");
+
+            background-attachment: fixed; /* Le fond restera fixe */
+            background-repeat: no-repeat; /* Le fond ne sera pas répété */
+            background-position: center middle ; /* Le fond sera placé en haut à droite */
+            background-size: 100% 100%;
+
+            font-family: Trebuchet MS;
+            color: white;
+
+        }
+        </style>
+    </head>
+
+    <body>
+        <h1>Stack Overflow Tag Predictor</h1>
+        <h4> <i>  Merci de renseigner les infos ci-dessous </i> </h4>
+
+        <form method="get" action="/result">
+            <label for="title">Title : </label>
+            <input type="string" size="100" name="title" id="title" required><br><br>
+            <label for="body">Body : </label>
+            <textarea style="height:200px;" cols="98" name="body" id="body" required>
+            </textarea><br><br>
+
+            <input type="submit" value="Envoyer les infos">
+        </form>
+        <br><br><br>
+<p>&copy; 2019 - Deborah David<p>
+
+    </body>
+</html>

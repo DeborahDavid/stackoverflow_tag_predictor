@@ -2,7 +2,7 @@ import os
 import json
 import pickle
 import pandas as pd
-from flask import Flask, request
+from flask import Flask, request, render_template
 import re
 from collections import Counter
 import scipy
@@ -73,12 +73,9 @@ def indice_to_tags(df_train, indices, i):
     data = Counter(temp_tags)
     return [ x[0] for x in data.most_common(10)]
 
-@app.route('/predict_tags', methods=['GET'])
-def predict_tags():
-    # Processing
-    input_data={}
-    for input in ['title','body']:
-        input_data[input]=request.args[input]
+
+def _predict_tags(title, body):
+    input_data = {"title": title, "body": body}
     input_data["Title_cleaned"]= title_to_words(input_data["title"], stops)
     input_data["text_cleaned"]= review_to_words(input_data["body"],input_data["title"], stops)
     df_custom = pd.DataFrame(pd.Series(input_data)).transpose()
@@ -92,4 +89,23 @@ def predict_tags():
 
     # Prediction
     _, indices = nbrs.kneighbors(X_custom_svd)
-    return json.dumps(indice_to_tags(df_train, indices, 0))
+    return indice_to_tags(df_train, indices, 0)
+
+@app.route('/predict_tags', methods=['GET'])
+def predict_tags():
+    return json.dumps(_predict_tags(request.args["title"], request.args["body"]))
+
+@app.route('/formulaire')
+def mapbox_gl():
+    print('load data')
+    return render_template(
+        'formulaire.html',
+    )
+
+@app.route('/result', methods=['GET'])
+def get_listing():
+    result = _predict_tags(request.args["title"], request.args["body"])
+    return render_template(
+        'formulaire_result.html',
+        result=result,
+    )
